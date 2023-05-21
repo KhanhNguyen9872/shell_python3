@@ -28,9 +28,22 @@ class bin:
         print("\nShell Python3 | KhanhNguyen9872")
         while 1:
             try:
-                shell()
+                bin.shell()
             except KeyboardInterrupt:
                 print("^C")
+    def shell():
+        print("\n{1}┌──({2}{3}@localhost{1})-[{0}{4}{1}]".format(Color.reset(),Color.green(),Color.blue(),os.getlogin(),"~" if os.getcwd()==os.path.expanduser('~') else os.getcwd()))
+        print("└─{1}${0}".format(Color.reset(),Color.blue()),end = ' ')
+        cmd=bin.shell_split(str(input()))
+        try:
+            if cmd[0]=="dir":
+                int("Khanh")
+            globals()[cmd[0]](cmd[1:])
+        except (ValueError, KeyError, TypeError):
+            try:
+                os.system("{0} {1}".format(cmd[0],' '.join(cmd[1:])))
+            except FileNotFoundError:
+                print("-shell: {0}: command not found".format(cmd[0]))
    
 def _help(arg=[]):
     print("""Shell by KhanhNguyen9872
@@ -209,20 +222,6 @@ def exit(arg=[]):
         sys.exit(int(arg[0]))
     except ValueError:
         print("\rshell: exit: {}: numeric argument required".format(arg[0]))
-
-def shell():
-    print("\n{1}┌──({2}{3}@localhost{1})-[{0}{4}{1}]".format(Color.reset(),Color.green(),Color.blue(),os.getlogin(),"~" if os.getcwd()==os.path.expanduser('~') else os.getcwd()))
-    print("└─{1}${0}".format(Color.reset(),Color.blue()),end = ' ')
-    cmd=bin.shell_split(str(input()))
-    try:
-        if cmd[0]=="dir" or cmd[0]=="shell":
-            int("Khanh")
-        globals()[cmd[0]](cmd[1:])
-    except (ValueError, KeyError, TypeError):
-        try:
-            os.system("{0} {1}".format(cmd[0],' '.join(cmd[1:])))
-        except FileNotFoundError:
-            print("-shell: {0}: command not found".format(cmd[0]))
 
 if __name__=='__main__':
     HOME=os.path.expanduser('~')
