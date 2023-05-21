@@ -44,6 +44,8 @@ class bin:
                 os.system("{0} {1}".format(cmd[0],' '.join(cmd[1:])))
             except FileNotFoundError:
                 print("-shell: {0}: command not found".format(cmd[0]))
+        except IndexError:
+            return
    
 def _help(arg=[]):
     print("""Shell by KhanhNguyen9872
