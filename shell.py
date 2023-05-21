@@ -50,7 +50,7 @@ class bin:
 def _help(arg=[]):
     print("""Shell by KhanhNguyen9872
 
-command: ls, cd, rm, mkdir, printf, echo, nohup, python3, unzip, clear, exit
+command: ls, cd, touch, rm, mkdir, cat, printf, echo, pwd, python3, unzip, zip, clear, exit
 """)
     
 def touch(arg=[]):
