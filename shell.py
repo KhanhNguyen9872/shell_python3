@@ -6,6 +6,7 @@ import threading
 import subprocess
 import shlex
 import json
+import stat
 
 class Color:
     def blue(): return '\033[94m'
@@ -13,18 +14,36 @@ class Color:
     def yellow(): return '\033[93m'
     def red(): return '\033[91m'
     def reset(): return '\033[0m'
+    def bg_green(i=""): return '\x1b[6;30;42m' + str(i) + '\x1b[0m'
 
 class bin:
     def is_dir(dir): return pathlib.Path(dir).is_dir()
     def is_file(file): return pathlib.Path(file).is_file()
     def touch(file): return pathlib.Patah(file).touch()
     def err(e): print("{}: missing operand".format(e))
+    def title(): os.system("title Shell") if os.name == 'nt' else os.system("")
+    def owner_group(file):
+        if os.name == 'nt':
+            return ""
+        return "{}\t{}".format(pathlib.Path(file).owner(),pathlib.Path(file).group())
     def shell_split(cmd=""):
         if os.name == 'posix': return shlex.split(cmd)
         else:
             if not cmd: return []
             return json.loads(subprocess.check_output('{} {}'.format(subprocess.list2cmdline([sys.executable, '-c', 'import sys, json; print(json.dumps(sys.argv[1:]))']), cmd)).decode())
+    def chmod(file,chmod_per=9999,is_chmod=1):
+        if bin.is_file(file) and bin.is_dir(file):
+            print("chmod: cannot access '{}': No such file or directory".format(file))
+        elif is_chmod == 0:
+            return eval("stat.filemode({})".format(oct(os.stat(file).st_mode)))
+        elif chmod_per == 9999:
+            print("chmod: missing operand after '{}'".format(file))
+        elif len(chmod_per)>3 or len([str(char) for char in str(chmod_per) if int(char)<=7]) != 3:
+            print("chmod: invalid mode: '{}'".format(chmod_per))
+            return
+        os.chmod(str(file),int(chmod_per))
     def main():
+        bin.title()
         print("\nShell Python3 | KhanhNguyen9872")
         while 1:
             try:
@@ -32,7 +51,7 @@ class bin:
             except KeyboardInterrupt:
                 print("^C")
     def shell():
-        print("\n{1}┌──({2}{3}@localhost{1})-[{0}{4}{1}]".format(Color.reset(),Color.green(),Color.blue(),os.getlogin(),"~" if os.getcwd()==os.path.expanduser('~') else os.getcwd()))
+        print("\n{1}┌──({2}{3}@localhost{1})-[{0}{4}{1}]".format(Color.reset(),Color.green(),Color.blue(),os.getlogin() if os.name == 'nt' else os.environ['USER'],"~" if os.getcwd()==os.path.expanduser('~') else os.getcwd()))
         print("└─{1}${0}".format(Color.reset(),Color.blue()),end = ' ')
         cmd=bin.shell_split(str(input()))
         try:
@@ -50,9 +69,17 @@ class bin:
 def _help(arg=[]):
     print("""Shell by KhanhNguyen9872
 
-command: ls, cd, touch, rm, mkdir, cat, printf, echo, pwd, python3, unzip, zip, clear, exit
+command: ls, cd, touch, rm, mkdir, cat, chmod, printf, echo, pwd, python3, unzip, zip, clear, exit
 """)
     
+def chmod(arg=[]):
+    if arg==[]:
+        bin.err("chmod")
+    elif len(arg)<2:
+        print("chmod: missing operand after '{}'".format(arg[0]))
+    else:
+        bin.chmod(arg[1],arg[0])
+
 def touch(arg=[]):
     if arg==[]:
         bin.err("touch")
@@ -173,26 +200,41 @@ def pwd(arg=[]):
     print(os.getcwd())
     
 def ls(arg=[]):
-    folder=[]
     file=[]
     tmp=""
+    tmp1=[]
     count = 0
-    for i in os.listdir():
-        if bin.is_file(i):
-            file.append(Color.reset()+i)
-        else:
-            folder.append(Color.blue()+i+Color.reset())
-    syntax="!@#$%^&*()(*&^%$#@!)[];:|><.,/?-=`~+"
-    all=str("{0}{2}{1}".format(syntax.join(folder),syntax.join(file),syntax)).split(syntax)
-    del folder,file
-    for i in all:
-        if " " in i:
-            i="'{0}'".format(i)
-        if count>=3:
-            tmp+="\n"
-            count=0
-        tmp+="{0}\t".format(i)
-        count+=1
+    try:
+        for i in os.listdir():
+            if bin.is_file(i):
+                if "x" in bin.chmod(i,9999,0):
+                    j=Color.green()+i
+                else:
+                    j=Color.reset()+i
+                file.append(j)
+            elif bin.is_dir(i):
+                if "x" in bin.chmod(i,9999,0):
+                    j=Color.bg_green(i)
+                else:
+                    j=Color.blue()+i+Color.reset()
+                file.append(j)
+            else:
+                continue
+            if "-l" in arg:
+                tmp += "{0}\t{1}\t{2}\n".format(bin.chmod(i,9999,0),bin.owner_group(i),file[-1])
+    except PermissionError:
+        print("ls: can't open '{0}': Permission denied".format(os.getcwd()))
+        return
+    
+    if "-l" not in arg:
+        for i in file:
+            if " " in i:
+                i="'{0}'".format(i)
+            if count>=3:
+                tmp+="\n"
+                count=0
+            tmp+="{0}\t".format(i)
+            count+=1
     
     print("{0}".format(tmp))
     
@@ -201,8 +243,14 @@ def cd(arg=[]):
         path=HOME
     elif arg[0] == "..":
         path="/".join("/".join(os.getcwd().split("\\")).split("/")[:-1])
-    elif bin.is_dir(arg[0]):
+        if path=="" and os.name != 'nt':
+            path = "/"
+        elif path[-1] == ':' and os.name == 'nt':
+            path += "\\"
+    elif bin.is_dir(os.getcwd()+"\\"+arg[0]):
         path="{}\\{}".format(os.getcwd(),arg[0])
+    elif bin.is_dir(arg[0]):
+        path=arg[0]
     elif bin.is_file(arg[0]):
         print("-shell: cd: {}: Not a directory".format(arg[0]))
         return
