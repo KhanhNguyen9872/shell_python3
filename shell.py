@@ -19,7 +19,7 @@ class Color:
 class bin:
     def is_dir(dir): return pathlib.Path(dir).is_dir()
     def is_file(file): return pathlib.Path(file).is_file()
-    def touch(file): return pathlib.Patah(file).touch()
+    def touch(file): return pathlib.Path(file).touch()
     def err(e): print("{}: missing operand".format(e))
     def title(): os.system("title Shell") if os.name == 'nt' else os.system("")
     def owner_group(file):
