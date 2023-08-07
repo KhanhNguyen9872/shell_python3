@@ -51,7 +51,11 @@ class bin:
             except KeyboardInterrupt:
                 print("^C")
     def shell():
-        print("\n{1}┌──({2}{3}@localhost{1})-[{0}{4}{1}]".format(Color.reset(),Color.green(),Color.blue(),os.getlogin() if os.name == 'nt' else os.environ['USER'],"~" if os.getcwd()==os.path.expanduser('~') else os.getcwd()))
+        try:
+            user = os.getlogin() if os.name == 'nt' else os.environ['USER']
+        except KeyError:
+            user = subprocess.getoutput('whoami')
+        print("\n{1}┌──({2}{3}@localhost{1})-[{0}{4}{1}]".format(Color.reset(),Color.green(),Color.blue(),user,"~" if os.getcwd()==os.path.expanduser('~') else os.getcwd()))
         print("└─{1}${0}".format(Color.reset(),Color.blue()),end = ' ')
         cmd=bin.shell_split(str(input()))
         try:
