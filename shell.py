@@ -118,7 +118,7 @@ def hyperion_deobf(arg=[]):
 def chmod(arg=[]):
     if len(arg) == 1:
         bin.err("chmod")
-    elif len(arg)<2:
+    elif len(arg)<3:
         print("chmod: missing operand after '{}'".format(arg[1]))
     else:
         bin.chmod(arg[2], arg[1])
@@ -127,6 +127,7 @@ def touch(arg=[]):
     if len(arg) == 1:
         bin.err("touch")
     else:
+        arg=arg[1:]
         for i in arg:
             bin.touch(i)
     
@@ -134,6 +135,7 @@ def rm(arg=[]):
     if len(arg) == 1:
         bin.err("rm")
         return
+    arg=arg[1:]
     arg=list(set(arg))
     tmp=["-r","-f","-rf"]
     if "-rf" in arg or "-r" in arg:
@@ -163,6 +165,7 @@ def mkdir(arg=[]):
     if len(arg) == 1:
         bin.err("mkdir")
     else:
+        arg=arg[1:]
         is_ignore=0
         if "-p" in arg:
             is_ignore=1
@@ -186,6 +189,7 @@ def cat(arg=[]):
                 print("^C")
                 break
     else:
+        arg=arg[1:]
         for i in arg:
             if bin.is_file(i):
                 print(open(i,"r").read())
@@ -197,6 +201,7 @@ def cat(arg=[]):
 def unzip(arg=[]):
     if len(arg) == 1:
         return
+    arg=arg[1:]
     if "-d" in arg:
         for i in range(len(arg)):
             if arg[i]=="-d":
@@ -219,9 +224,10 @@ def unzip(arg=[]):
 def zip(arg=[]):
     if len(arg) == 1:
         bin.err("zip")
-    elif len(arg)<2:
+    elif len(arg)<3:
         print("zip: need two arguments! \"file_name.zip\" and \"path_to_zip\"")
     else:
+        arg=arg[1:]
         if bin.is_file(arg[-2]):
             os.remove(arg[-2])
         if bin.is_dir(arg[-2]):
@@ -236,6 +242,7 @@ def printf(arg=[]):
     print(" ".join(arg),end='')
 
 def echo(arg=[]):
+    arg=arg[1:]
     arg=str(str(" ".join(arg).replace("\n","\\\n")).replace("\t","\\\t")).replace("\r","\\\r")
     print(arg)
 
@@ -244,6 +251,7 @@ def pwd(arg=[]):
     
 def ls(arg=[]):
     file=[]
+    arg=arg[1:]
     tmp=""
     tmp1=[]
     count = 0
@@ -306,10 +314,11 @@ def clear(arg=[]):
     os.system('cls' if os.name == 'nt' else 'clear')
     
 def python3(arg=[]):
+    arg=arg[1:]
     os.system("python {0}".format(" ".join(arg)) if os.name == 'nt' else "python3 {0}".format(" ".join(arg)))
     
 def exit(arg=[]):
-    if arg[0]=="exit":
+    if len(arg) == 1:
         arg=["exit", "0"]
     try:
         sys.exit(int(arg[1]))
